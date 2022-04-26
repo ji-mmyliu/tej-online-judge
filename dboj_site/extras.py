@@ -1,6 +1,6 @@
 import uuid
 import hashlib
-from dboj_site import settings, contests
+from dboj_site import settings
 
 def cmpProblem(a, b):
     if a[0] < b[0]:

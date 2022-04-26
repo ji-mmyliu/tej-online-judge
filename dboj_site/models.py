@@ -17,7 +17,7 @@ class User:
     def __init__(self, name):
         self.name = name
         self.is_active = True
-        self.id = settings.find_one({"type":"account", "name":name})['id']
+        self.id = settings.find_one({"type":"user", "username":name})['id']
         self.is_authenticated = True
         self.is_active = True
         self.is_anonymous = False
@@ -39,4 +39,4 @@ class User:
         return f"User('{self.name}')"
 
     def get_user(id):
-        return User(settings.find_one({"type":"account", "id":id})['name'])
+        return User(settings.find_one({"type":"user", "id":id})['username'])

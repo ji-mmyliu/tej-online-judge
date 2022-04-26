@@ -9,10 +9,16 @@ from dboj_site.models import User
 from dboj_site import settings
 
 class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
+class RegisterForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm = PasswordField('Confirm password', validators=[DataRequired()])
+    submit = SubmitField('Register')
 
 class UpdateAccountForm(FlaskForm):
     username = StringField('Username',
@@ -42,7 +48,7 @@ class PostForm(FlaskForm):
 
 
 class SubmitForm(FlaskForm):
-    lang = SelectField('Language', choices = [x['name'] for x in settings.find({"type":"lang"})])
+    lang = SelectField('Language', choices = ["C", "C++"])
     src = CodeMirrorField('Source code', config={'lineNumbers' : 'true'})
     submit = SubmitField('Submit!')
 
