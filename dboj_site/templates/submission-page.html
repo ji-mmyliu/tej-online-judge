@@ -39,7 +39,12 @@
             <tbody>
             {% for submission in submissions %}
             <tr>
+                {% if current_user.is_admin or current_user.name == submission['author'] %}
                 <td><a href="/submission/{{submission['id']}}">{{submission['id']}}</a></td>
+                {% else %}
+                <td>{{submission['id']}}</td>
+                {% endif %}
+
                 <td>{{submission['author']}}</td>
                 {% if submission['status'] == 'Correct' %}
                 <td style="background-color:lightgreen">{{submission['status']}}</td>

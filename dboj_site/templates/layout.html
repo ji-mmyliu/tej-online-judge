@@ -126,9 +126,7 @@
                         <h3>{{side_title}}</h3>
                         <a href="/viewproblem/{{problemName}}/submit"><button class="btn btn-primary">Submit Solution</button></a>
                         <hr style="padding-bottom: 0.3em">
-                        {% if current_user.is_admin %}
                         <a href="/viewproblem/{{problemName}}/submissions">View user submissions</a>
-                        {% endif %}
                     </div>
                     {% elif sub_problem %}
                         <div class="content-section">
