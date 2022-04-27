@@ -148,7 +148,7 @@ def view_source(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     return render_template('view_source.html', title="View source from " + str(sub_id), sub_problem=sub['problem'], lang=sub['lang'], sid=sub_id, src=sub['message'].replace("\n", "%nl%").replace("\t", "%sp%%sp%%sp%%sp%").replace(" ", "%sp%"), author=sub['author'])
 
@@ -158,55 +158,11 @@ def raw_source(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     with open("dboj_site/static/raw_source.txt", "w") as f:
         f.write(sub['message'].strip().replace("\n\n", "\n"))
-    return send_from_directory('static', 'raw_source.txt')#, title="Raw source from " + str(sub_id), src = sub['message'].strip())
-
-@app.route('/problems/export')
-@login_required
-def export():
-    if not current_user.is_admin:
-        abort(403)
-    return render_template('export.html', title="Export problem data")
-
+    return send_from_directory('static', 'raw_source.txt')
+    
 def is_busy():
     return settings.find_one({"type":"busy"})['busy']
-
-@app.route('/problems/export', methods=['POST'])
-@login_required
-def upload_file():
-    if not current_user.is_admin:
-        abort(403)
-    uploaded_file = request.files['file']
-
-    if is_busy():
-        flash("An upload is in progress. Please try again in a few seconds.", "danger")
-        return redirect("/problems/export")
-    settings.update_one({"type":"busy"}, {"$set":{"busy":True}})
-    if uploaded_file.filename != '':
-        if not uploaded_file.filename.endswith(".zip"):
-            flash("Error: the uploaded file does not have a .zip extention", "danger")
-            settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-            return redirect("/problems/export")
-        os.system("rm data.zip; rm -r problemdata")
-        uploaded_file.save("data.zip")
-        try:
-            msg = problem_uploading.uploadProblem(settings, storage.Client(), current_user.name)
-            flash(msg, "success")
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            print(e)
-            flash("An error occurred: " + str(e), "danger")
-            settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-            return redirect("/problems/export")
-    else:
-        flash("No file was selected", "danger")
-        settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-        return redirect("/problems/export")
-    print("Done")
-    settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-    return redirect("/problems/export")
