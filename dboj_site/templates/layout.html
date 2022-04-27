@@ -85,9 +85,7 @@
                       <div class="btn-group">
                         <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Admin</button>
                         <div class="dropdown-menu">
-                          <a class="dropdown-item" href="/post/new">New Site Announcement</a>
-                          <a class="dropdown-item" href="/problems/export">Upload Problem Data</a>
-                          <a class="dropdown-item" href="/contests/new">Create New Contest</a>
+                          <a class="dropdown-item" href="/"></a>
                         </div>
                       </div>
                     {% endif %}
@@ -128,7 +126,9 @@
                         <h3>{{side_title}}</h3>
                         <a href="/viewproblem/{{problemName}}/submit"><button class="btn btn-primary">Submit Solution</button></a>
                         <hr style="padding-bottom: 0.3em">
-                        
+                        {% if current_user.is_admin %}
+                        <a href="/viewproblem/{{problemName}}/submissions">View user submissions</a>
+                        {% endif %}
                     </div>
                     {% elif sub_problem %}
                         <div class="content-section">

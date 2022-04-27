@@ -1,5 +1,58 @@
 {% extends "layout.html" %}
 {% block content %}
-    <legend class="border-bottom mb-4">Submissions for <a href="/viewproblem/{{problemName}}">{{problemName}}</a> by {{user}}</legend>
-    <p>Submissions page coming soon!</p>
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        font-weight:normal;
+    }
+
+    th {
+        background-color: #dddddd;
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        font-weight:500;
+    }
+</style>
+
+<article class="card mb-5" style="min-width:fit-content">
+    <div class="card-body">
+        <legend class="border-bottom mb-4" style="font-size: 30px; font-weight:bold">Submissions for <code>C-Lang Part {{problemName}}</code></legend>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Submission &#35;</th>
+                <th>Username</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for submission in submissions %}
+            <tr>
+                <td><a href="/submission/{{submission['id']}}">{{submission['id']}}</a></td>
+                <td>{{submission['author']}}</td>
+                {% if submission['status'] == 'Correct' %}
+                <td style="background-color:lightgreen">{{submission['status']}}</td>
+                {% elif submission['status'] == 'In progress' %}
+                <td style="background-color:yellow">{{submission['status']}}</td>
+                {% elif submission['status'] == 'Incorrect' %}
+                <td style="background-color:pink">{{submission['status']}}</td>
+                {% else %}
+                <td>{{submission['status']}}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</article>
+
 {% endblock content %}

@@ -96,7 +96,7 @@ def submit(problemName):
         
         lang = form.lang.data.lower()
         src = form.src.data
-        settings.insert_one({"type":"submission", "problem":problemName, "author":current_user.name, "lang":lang, "message":src, "id":sub_cnt, "output":""})        
+        settings.insert_one({"type":"submission", "problem":problemName, "author":current_user.name, "lang":lang, "message":src, "id":sub_cnt, "output":"", "status":"In progress"})        
 
         judges = settings.find_one({"type":"tej-judge", "status":0})
         
@@ -116,7 +116,7 @@ def raw_submission(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     output = sub['output'].replace("diff", "").replace("`", "").replace("+ ", "  ").replace("- ", "  ").replace(" ", "%sp%").strip().replace("\n", "%nl%")
     response = make_response(output)
@@ -129,13 +129,18 @@ def submission(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     return render_template('submission.html', title="Submission " + str(sub_id), sub_problem=sub['problem'], sub_id=sub_id)
     
-@app.route("/viewproblem/<string:problemName>/submissions/<string:user>")
-def submission_page(problemName, user):
-    return render_template('submission-page.html', title="Submissions for " + problemName + " by " + user, problemName = problemName, user = user)
+@app.route("/viewproblem/<string:problemName>/submissions")
+def submission_page(problemName):
+    submissions = []
+    for x in settings.find({"type":"submission", "problem":problemName}):
+        if 'status' in x:
+            submissions.append(x)
+    submissions.reverse()
+    return render_template('submission-page.html', title="Submissions for " + problemName, problemName = problemName, submissions = submissions)
 
 @app.route("/submission/<int:sub_id>/source")
 @login_required

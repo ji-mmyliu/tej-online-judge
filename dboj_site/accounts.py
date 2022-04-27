@@ -55,7 +55,7 @@ def register():
             flash('Password confirmation does not match', 'danger')
             return redirect('/register')
         hashed_pw = bcrypt.hashpw(form.password.data.encode(), bcrypt.gensalt())
-        settings.insert_one({"type":"user", "username":form.username.data, "password":hashed_pw, "id":settings.find_one({"type":"id_cnt"})['cnt']})
+        settings.insert_one({"type":"user", "username":form.username.data, "password":hashed_pw, "id":settings.find_one({"type":"id_cnt"})['cnt'], "admin":False})
         settings.update_one({"type":"id_cnt"}, {"$inc":{"cnt":1}})
         flash('Account successfully created!', 'success')
         return redirect('/home')

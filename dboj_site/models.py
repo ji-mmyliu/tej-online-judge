@@ -21,7 +21,7 @@ class User:
         self.is_authenticated = True
         self.is_active = True
         self.is_anonymous = False
-        self.is_admin = (not settings.find_one({"type":"access", "mode":"admin", "name":name}) is None)
+        self.is_admin = settings.find_one({"type":"user", "username":name})['admin']
     
     def t(self):
         if not self.is_authenticated or self.is_anonymous:
