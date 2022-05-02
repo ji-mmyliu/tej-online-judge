@@ -58,5 +58,6 @@ def register():
         settings.insert_one({"type":"user", "username":form.username.data, "password":hashed_pw, "id":settings.find_one({"type":"id_cnt"})['cnt'], "admin":False})
         settings.update_one({"type":"id_cnt"}, {"$inc":{"cnt":1}})
         flash('Account successfully created!', 'success')
+        login_user(User(form.username.data), remember=form.remember.data)
         return redirect('/home')
     return render_template("register.html", title="Register", form = form)
