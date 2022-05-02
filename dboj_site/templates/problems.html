@@ -27,14 +27,14 @@
         {% if contest %}
         <legend class="border-bottom mb-4" style="font-size: 30px; font-weight:bold">Problems in contest <code>{{contest}}</code></legend>
         {% else %}
-        <legend class="border-bottom mb-4" style="font-size: 30px; font-weight:bold">Problems</legend>
+        <legend class="border-bottom mb-4" style="font-size: 30px; font-weight:bold">Tasks</legend>
         {% endif %}
 
         <table>
             {% if contest %}
                 <thead>
                     <tr>
-                        <th>Problem name</th>
+                        <th>Task name</th>
                         <th>&#10003;</th>
                     </tr>
                 </thead>
@@ -51,19 +51,15 @@
             {% else %}
                 <thead>
                 <tr>
-                    <th>Problem name</th>
-                    <th>Points</th>
-                    <th>Problem types</th>
-                    <th>Authors/Testers</th>
+                    <th>Task name</th>
+                    <th>Due date</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for problem in problems %}
                 <tr>
-                    <td><a href="/viewproblem/{{problem[0]}}">{{problem[0]}}</a></td>
-                    <td>{{problem[1]}}</td>
-                    <td>{{problem[2]}}</td>
-                    <td>{{problem[3]}}</td>
+                    <td><a href="/viewproblem/{{problem[0]}}">C-Lang Part {{problem[0]}}</a></td>
+                    <td></td>
                 </tr>
                 {% endfor %}
                 </tbody>

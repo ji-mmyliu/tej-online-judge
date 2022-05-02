@@ -53,17 +53,17 @@
         </style>
 
         {% if title %}
-        <title>{{ title }} - Discord Bot Online Judge</title>
+        <title>{{ title }} - TEJ3M CLang Online Judge</title>
         {% else %}
-        <title>Discord Bot Online Judge</title>
+        <title>TEJ3M CLang Online Judge</title>
         {% endif %}
     </head>
 
     <body>
         <header class="site-header">
-            <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+            <nav class="navbar navbar-expand-md navbar-light bg-warning fixed-top">
               <div class="container">
-                <a class="navbar-brand mr-4" href="/">Discord Bot Online Judge</a>
+                <a class="navbar-brand mr-4" href="/">TEJ3M C-Lang Online Judge</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon"></span>
                 </button>
@@ -71,27 +71,21 @@
                   <div class="navbar-nav mr-auto">
                     <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
                     <div class="btn-group">
-                      <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About</button>
+                      <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About</button>
                       <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/about/languages">Languages</a>
-                        <a class="dropdown-item" href="/about/problem-setting">Problem Setting</a>
-                        <a class="dropdown-item" href="https://discord.gg/mhJbxatSpS">Official Discord Server</a>
-                        <a class="dropdown-item" href="https://discord.com/api/oauth2/authorize?client_id=831963122448203776&permissions=2148005952&scope=bot">Bot Invite Link</a>
+                        <a class="dropdown-item" href="https://dboj.jimmyliu.dev">DBOJ Main Site</a>
                         <a class="dropdown-item" href="https://github.com/DiscordBotOnlineJudge">Github</a>
                       </div>
                     </div>
-                    <a class="nav-item nav-link" href="{{ url_for('problems') }}">Problems</a>
-                    <a class="nav-item nav-link" href="/contests">Contests</a>
+                    <a class="nav-item nav-link" href="{{ url_for('problems') }}">Tasks</a>
                   </div>
                   <!-- Navbar Right Side -->
                   <div class="navbar-nav">
                     {% if current_user.is_admin %}
                       <div class="btn-group">
-                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Admin</button>
+                        <button class="btn btn-warning dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Admin</button>
                         <div class="dropdown-menu">
-                          <a class="dropdown-item" href="/post/new">New Site Announcement</a>
-                          <a class="dropdown-item" href="/problems/export">Upload Problem Data</a>
-                          <a class="dropdown-item" href="/contests/new">Create New Contest</a>
+                          <a class="dropdown-item" href="/"></a>
                         </div>
                       </div>
                     {% endif %}

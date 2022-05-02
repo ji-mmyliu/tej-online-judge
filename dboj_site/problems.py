@@ -50,7 +50,7 @@ def problems():
     problems = []
     contest = contest_problems(problems)
     if not contest:
-        problems = sorted([(x['name'], x['points'], ", ".join(x['types']), ", ".join(x['authors'])) for x in settings.find({"type":"problem", "published":True})], key = cmp_to_key(extras.cmpProblem))
+        problems = sorted([(x['name'], x['points'], ", ".join(x['types']), ", ".join(x['authors'])) for x in settings.find({"type":"tej-task", "published":True})], key = cmp_to_key(extras.cmpProblem))
     return render_template('problems.html', problems=problems, contest=contest, title="Problems")
 
 @app.route("/problems/private")
@@ -65,7 +65,7 @@ def private_problems():
 
 @app.route("/viewproblem/<string:problemName>")
 def viewProblem(problemName):
-    problem = settings.find_one({"type":"problem", "name":problemName})
+    problem = settings.find_one({"type":"tej-task", "name":problemName})
     if problem is None:
         abort(404)
     elif (not problem['published'] and (not current_user.is_authenticated or current_user.is_anonymous or (perms(problem, current_user.name)))):
@@ -78,15 +78,12 @@ def viewProblem(problemName):
     except:
         src = "This problem does not yet have a problem statement."
 
-    bucket.blob("TestData/" + problemName + "/resources.yaml").download_to_filename("resources.yaml")
-    resources = yaml.safe_load(open("resources.yaml", "r").read())
-
-    return render_template('view_problem.html', title="View problem " + problemName, problemName=problemName, resources=resources, src = ("\n" + src.replace("<", "%lft%").replace(">", "%rit%")))
+    return render_template('view_problem.html', title="View problem " + problemName, problemName=problemName, src = ("\n" + src.replace("<", "%lft%").replace(">", "%rit%")))
 
 @app.route("/viewproblem/<string:problemName>/submit", methods=['GET', 'POST'])
 @login_required
 def submit(problemName):
-    problem = settings.find_one({"type":"problem", "name":problemName})
+    problem = settings.find_one({"type":"tej-task", "name":problemName})
     if problem is None:
         abort(404)
     elif (not problem['published'] and (not current_user.is_authenticated or current_user.is_anonymous or (perms(problem, current_user.name)))):
@@ -97,15 +94,12 @@ def submit(problemName):
         sub_cnt = settings.find_one({"type":"sub_cnt"})['cnt']
         settings.update_one({"type":"sub_cnt"}, {"$inc":{"cnt":1}})
         
-        lang = form.lang.data
+        lang = form.lang.data.lower()
         src = form.src.data
-        settings.insert_one({"type":"submission", "problem":problemName, "author":current_user.name, "lang":lang, "message":src, "id":sub_cnt, "output":""})        
+        settings.insert_one({"type":"submission", "problem":problemName, "author":current_user.name, "lang":lang, "message":src, "id":sub_cnt, "output":"", "status":"In progress"})        
 
-        judges = settings.find_one({"type":"judge", "status":0})
-        if judges is None:
-            flash("All of the judge's grading servers are currently offline or in use. Please resubmit in a few seconds.", "danger")
-            return redirect("/viewproblem/" + problemName + "/submit")
-
+        judges = settings.find_one({"type":"tej-judge", "status":0})
+        
         manager = Manager()
         return_dict = manager.dict()
         rpc = Process(target = runSubmission, args = (judges, current_user.name, src, lang, problemName, False, return_dict, sub_cnt,))
@@ -114,35 +108,6 @@ def submit(problemName):
         return redirect('/submission/' + str(sub_cnt))
     return render_template('submit.html', title='Submit to ' + problemName,
                         form=form, pn = problemName, user = current_user, sub_problem=problemName)
-
-"""@app.route("")
-def resubmit():
-    form = SubmitForm()
-    if form.validate_on_submit():
-        sub_cnt = settings.find_one({"type":"sub_cnt"})['cnt']
-        settings.update_one({"type":"sub_cnt"}, {"$inc":{"cnt":1}})
-        
-        lang = form.lang.data
-        src = form.src.data
-        settings.insert_one({"type":"submission", "problem":problemName, "author":current_user.name, "message":src, "id":sub_cnt, "output":""})        
-
-        judges = settings.find_one({"type":"judge", "status":0})
-        if judges is None:
-            flash("All of the judge's grading servers are currently offline or in use. Please resubmit in a few seconds.", "danger")
-            return
-
-        manager = Manager()
-        return_dict = manager.dict()
-        rpc = Process(target = runSubmission, args = (judges, current_user.name, src, lang, problemName, False, return_dict, sub_cnt,))
-        rpc.start()
-
-        return redirect('/submission/' + str(sub_cnt))
-    elif request.method == 'GET':
-
-        form.lang.data = post['title']
-        form.src.data = post['content']
-    return render_template('submit.html', title='Submit to ' + problemName,
-                        form=form, legend='Submit to ' + problemName, user = current_user, sub_problem=problemName)"""
     
 
 @app.route("/raw_submission/<int:sub_id>")
@@ -151,7 +116,7 @@ def raw_submission(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     output = sub['output'].replace("diff", "").replace("`", "").replace("+ ", "  ").replace("- ", "  ").replace(" ", "%sp%").strip().replace("\n", "%nl%")
     response = make_response(output)
@@ -164,13 +129,18 @@ def submission(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     return render_template('submission.html', title="Submission " + str(sub_id), sub_problem=sub['problem'], sub_id=sub_id)
     
-@app.route("/viewproblem/<string:problemName>/submissions/<string:user>")
-def submission_page(problemName, user):
-    return render_template('submission-page.html', title="Submissions for " + problemName + " by " + user, problemName = problemName, user = user)
+@app.route("/viewproblem/<string:problemName>/submissions")
+def submission_page(problemName):
+    submissions = []
+    for x in settings.find({"type":"submission", "problem":problemName}):
+        if 'status' in x:
+            submissions.append(x)
+    submissions.reverse()
+    return render_template('submission-page.html', title="Submissions for " + problemName, problemName = problemName, submissions = submissions)
 
 @app.route("/submission/<int:sub_id>/source")
 @login_required
@@ -178,7 +148,7 @@ def view_source(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     return render_template('view_source.html', title="View source from " + str(sub_id), sub_problem=sub['problem'], lang=sub['lang'], sid=sub_id, src=sub['message'].replace("\n", "%nl%").replace("\t", "%sp%%sp%%sp%%sp%").replace(" ", "%sp%"), author=sub['author'])
 
@@ -188,55 +158,11 @@ def raw_source(sub_id):
     sub = settings.find_one({"type":"submission", "id":sub_id})
     if not sub:
         abort(404)
-    elif sub['author'] != current_user.name:
+    elif not current_user.is_admin and sub['author'] != current_user.name:
         abort(403)
     with open("dboj_site/static/raw_source.txt", "w") as f:
         f.write(sub['message'].strip().replace("\n\n", "\n"))
-    return send_from_directory('static', 'raw_source.txt')#, title="Raw source from " + str(sub_id), src = sub['message'].strip())
-
-@app.route('/problems/export')
-@login_required
-def export():
-    if not current_user.is_admin:
-        abort(403)
-    return render_template('export.html', title="Export problem data")
-
+    return send_from_directory('static', 'raw_source.txt')
+    
 def is_busy():
     return settings.find_one({"type":"busy"})['busy']
-
-@app.route('/problems/export', methods=['POST'])
-@login_required
-def upload_file():
-    if not current_user.is_admin:
-        abort(403)
-    uploaded_file = request.files['file']
-
-    if is_busy():
-        flash("An upload is in progress. Please try again in a few seconds.", "danger")
-        return redirect("/problems/export")
-    settings.update_one({"type":"busy"}, {"$set":{"busy":True}})
-    if uploaded_file.filename != '':
-        if not uploaded_file.filename.endswith(".zip"):
-            flash("Error: the uploaded file does not have a .zip extention", "danger")
-            settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-            return redirect("/problems/export")
-        os.system("rm data.zip; rm -r problemdata")
-        uploaded_file.save("data.zip")
-        try:
-            msg = problem_uploading.uploadProblem(settings, storage.Client(), current_user.name)
-            flash(msg, "success")
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            print(e)
-            flash("An error occurred: " + str(e), "danger")
-            settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-            return redirect("/problems/export")
-    else:
-        flash("No file was selected", "danger")
-        settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-        return redirect("/problems/export")
-    print("Done")
-    settings.update_one({"type":"busy"}, {"$set":{"busy":False}})
-    return redirect("/problems/export")

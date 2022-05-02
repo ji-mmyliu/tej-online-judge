@@ -1,8 +1,8 @@
 import os
-import secrets
+import secrets, bcrypt
 from flask import render_template, url_for, flash, redirect, request, abort
 from dboj_site import app, settings, extras
-from dboj_site.forms import LoginForm, UpdateAccountForm, PostForm, SubmitForm
+from dboj_site.forms import LoginForm, UpdateAccountForm, PostForm, SubmitForm, RegisterForm
 from dboj_site.models import User
 from flask_login import login_user, current_user, logout_user, login_required
 from google.cloud import storage
@@ -23,18 +23,17 @@ def login():
         return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = None
-        for x in settings.find({"type":"account"}):
-            if extras.check_equal(x['pswd'], form.password.data):
-                user = x
-                break
+        user = settings.find_one({"type":"user", "username":form.username.data})
         if not user is None:
-            login_user(User(user['name']), remember=form.remember.data)
+            if not bcrypt.checkpw(form.password.data.encode(), user['password']):
+                flash('Sorry, the password you entered is incorrect', 'danger')
+                return redirect('/login')
+            login_user(User(user['username']), remember=form.remember.data)
             next_page = request.args.get('next')
             flash('Login Success!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
-            flash('Login Unsuccessful. Please check your password. To create an account, use the "-register" command on the Discord bot', 'danger')
+            flash('No account exists under this username.', 'danger')
     return render_template('login.html', title='Log In', form=form)
 
 
@@ -44,6 +43,20 @@ def logout():
     flash('Successfully logged out. See you later!', 'success')
     return redirect(url_for('home'))
 
-@app.route("/register")
+@app.route("/register", methods = ["GET", "POST"])
 def register():
-    return render_template("register.html", title="Register")
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = settings.find_one({"type":"user", "username":form.username.data})
+        if not user is None:
+            flash('A user with this name already exists', 'danger')
+            return redirect('/register')
+        if form.password.data != form.confirm.data:
+            flash('Password confirmation does not match', 'danger')
+            return redirect('/register')
+        hashed_pw = bcrypt.hashpw(form.password.data.encode(), bcrypt.gensalt())
+        settings.insert_one({"type":"user", "username":form.username.data, "password":hashed_pw, "id":settings.find_one({"type":"id_cnt"})['cnt'], "admin":False})
+        settings.update_one({"type":"id_cnt"}, {"$inc":{"cnt":1}})
+        flash('Account successfully created!', 'success')
+        return redirect('/home')
+    return render_template("register.html", title="Register", form = form)

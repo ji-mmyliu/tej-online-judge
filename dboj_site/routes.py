@@ -11,7 +11,6 @@ from dboj_site.accounts import *
 from dboj_site.error_handlers import *
 from dboj_site.announcements import *
 from dboj_site.about import *
-from dboj_site.contest_routes import *
 from flask_login import login_user, current_user, logout_user, login_required
 from google.cloud import storage
 from functools import cmp_to_key
@@ -31,16 +30,5 @@ def cmpPost(a, b):
 @app.route("/")
 @app.route("/home")
 def home():
-    posts = sorted([x for x in settings.find({"type":"post"})], key = cmp_to_key(cmpPost))
+    posts = sorted([x for x in settings.find({"type":"tej-post"})], key = cmp_to_key(cmpPost))
     return render_template('home.html', title="Home", posts=posts)
-
-@app.context_processor
-def inject_contest_time():
-    try:
-        contest = get_contest()
-        if not contest:
-            return dict(t = None)
-        else:
-            return dict(t = contest['start'].split(), len = settings.find_one({"type":"contest", "name":contest['mode']})['len'], ctst = contest['mode'])
-    except:
-        return {}
