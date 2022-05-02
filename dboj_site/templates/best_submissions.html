@@ -24,39 +24,45 @@
 
 <article class="card mb-5" style="min-width:fit-content">
     <div class="card-body">
-        <legend class="border-bottom mb-4" style="font-size: 30px; font-weight:bold">Submissions for <a href="/viewproblem/{{problemName}}">C-Lang Part {{problemName}}</a></legend>
+        <legend class="border-bottom mb-4" style="font-size: 30px; font-weight:bold">User progress for <a href="/viewproblem/{{problemName}}">C-Lang Part {{problemName}}</a></legend>
 
         <p>Please reload the page to see latest submission statuses.</p>
 
         <table>
             <thead>
             <tr>
-                <th>Submission &#35;</th>
                 <th>Username</th>
                 <th>Status</th>
+                <th>Submission &#35;</th>
             </tr>
             </thead>
             <tbody>
-            {% for submission in submissions %}
+            {% for user in solved %}
             <tr>
-                {% if current_user.is_admin or current_user.name == submission['author'] %}
-                <td><a href="/submission/{{submission['id']}}">{{submission['id']}}</a></td>
-                {% else %}
-                <td>{{submission['id']}}</td>
-                {% endif %}
+                <td>{{user}}</td>
+                <td style="background-color:lightgreen">Solved</td>
 
-                <td>{{submission['author']}}</td>
-                {% if submission['status'] == 'Correct' %}
-                <td style="background-color:lightgreen">{{submission['status']}}</td>
-                {% elif submission['status'] == 'In progress' %}
-                <td style="background-color:yellow">{{submission['status']}}</td>
-                {% elif submission['status'] == 'Incorrect' %}
-                <td style="background-color:pink">{{submission['status']}}</td>
+                {% if current_user.is_admin or current_user.name == user %}
+                <td><a href="/submission/{{solved[user]}}">{{user[2]}}</a></td>
                 {% else %}
-                <td>{{submission['status']}}</td>
+                <td>{{solved[user]}}</td>
                 {% endif %}
             </tr>
             {% endfor %}
+
+            {% for user in attempted %}
+            <tr>
+                <td>{{user}}</td>
+                <td style="background-color:yellow">Attempted</td>
+
+                {% if current_user.is_admin or current_user.name == user %}
+                <td><a href="/submission/{{attempted[user]}}">{{user[2]}}</a></td>
+                {% else %}
+                <td>{{attempted[user]}}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+
             </tbody>
         </table>
     </div>

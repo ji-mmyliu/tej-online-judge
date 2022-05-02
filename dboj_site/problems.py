@@ -142,6 +142,21 @@ def submission_page(problemName):
     submissions.reverse()
     return render_template('submission-page.html', title="Submissions for " + problemName, problemName = problemName, submissions = submissions)
 
+@app.route("/viewproblem/<string:problemName>/submissions/best")
+def best_submissions(problemName):
+    solved = {}
+    attempted = {}
+    submissions = [x for x in settings.find({"type":"submission", "problem":problemName})]
+    for x in submissions:
+        if not 'status' in x: continue
+        if x['status'] == 'Correct':
+            solved[x['author']] = x['id']
+    for x in submissions:
+        if not 'status' in x: continue
+        if x['status'] == 'Incorrect' and not x['author'] in solved:
+            attempted[x['author']] = x['id']
+    return render_template("best_submissions.html", title=f"User progress for C-Lang Part {problemName}", solved = solved, attempted = attempted, problemName=problemName)
+
 @app.route("/submission/<int:sub_id>/source")
 @login_required
 def view_source(sub_id):
