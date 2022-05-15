@@ -3,9 +3,9 @@ import hashlib
 from dboj_site import settings
 
 def cmpProblem(a, b):
-    if a[0] < b[0]:
+    if a['name'] < b['name']:
         return -1
-    elif a[0] > b[0]:
+    elif a['name'] > b['name']:
         return 1
     else:
         return a[1] - b[1]

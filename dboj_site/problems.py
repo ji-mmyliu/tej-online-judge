@@ -50,7 +50,7 @@ def problems():
     problems = []
     contest = contest_problems(problems)
     if not contest:
-        problems = sorted([(x['name'], x['points'], ", ".join(x['types']), ", ".join(x['authors'])) for x in settings.find({"type":"tej-task", "published":True})], key = cmp_to_key(extras.cmpProblem))
+        problems = sorted([x for x in settings.find({"type":"tej-task", "published":True})], key = cmp_to_key(extras.cmpProblem))
     return render_template('problems.html', problems=problems, contest=contest, title="Problems")
 
 @app.route("/problems/private")
@@ -78,7 +78,7 @@ def viewProblem(problemName):
     except:
         src = "This problem does not yet have a problem statement."
 
-    return render_template('view_problem.html', title="View problem " + problemName, problemName=problemName, src = ("\n" + src.replace("<", "%lft%").replace(">", "%rit%")))
+    return render_template('view_problem.html', title="View problem " + problemName, ready=problem['status'].startswith("Ready"), problemName=problemName, src = ("\n" + src.replace("<", "%lft%").replace(">", "%rit%")))
 
 @app.route("/viewproblem/<string:problemName>/submit", methods=['GET', 'POST'])
 @login_required
@@ -88,6 +88,10 @@ def submit(problemName):
         abort(404)
     elif (not problem['published'] and (not current_user.is_authenticated or current_user.is_anonymous or (perms(problem, current_user.name)))):
         abort(403)
+
+    if not problem['status'].startswith("Ready"):
+        flash("This problem is currently under maintenance. Please try again a bit later.", "danger")
+        return redirect(f"/viewproblem/{problem['name']}")
 
     form = SubmitForm()
     if form.validate_on_submit():
@@ -140,7 +144,7 @@ def submission_page(problemName):
         if 'status' in x:
             submissions.append(x)
     submissions.reverse()
-    return render_template('submission-page.html', title="Submissions for " + problemName, problemName = problemName, submissions = submissions)
+    return render_template('submission-page.html', title="Submissions for " + problemName, problemName = problemName, submissions = submissions, ready=settings.find_one({"type":"tej-task", "name":problemName})['status'].startswith("Ready"))
 
 @app.route("/viewproblem/<string:problemName>/submissions/best")
 def best_submissions(problemName):
@@ -155,7 +159,7 @@ def best_submissions(problemName):
         if not 'status' in x: continue
         if x['status'] == 'Incorrect' and not x['author'] in solved:
             attempted[x['author']] = x['id']
-    return render_template("best_submissions.html", title=f"User progress for C-Lang Part {problemName}", solved = solved, attempted = attempted, problemName=problemName)
+    return render_template("best_submissions.html", title=f"User progress for C-Lang Part {problemName}", solved = solved, attempted = attempted, problemName=problemName, ready=settings.find_one({"type":"tej-task", "name":problemName})['status'].startswith("Ready"))
 
 @app.route("/submission/<int:sub_id>/source")
 @login_required

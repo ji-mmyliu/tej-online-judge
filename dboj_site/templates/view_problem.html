@@ -21,7 +21,12 @@
 {% block sidebar %}
 <div class="content-section">
     <h3>{{side_title}}</h3>
+    {% if ready %}
     <a href="/viewproblem/{{problemName}}/submit"><button class="btn btn-primary">Submit Solution</button></a>
+    {% else %}
+    <a style="max-width:1rem">This problem is currently under maintenance. Please check back a bit later.</a>
+    {% endif %}
+
     <hr style="padding-bottom: 0.3em">
     <a href="/viewproblem/{{problemName}}/submissions">View submissions</a><br>
     <a href="/viewproblem/{{problemName}}/submissions/best">View user progress</a>

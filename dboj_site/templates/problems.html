@@ -31,39 +31,24 @@
         {% endif %}
 
         <table>
-            {% if contest %}
-                <thead>
-                    <tr>
-                        <th>Task name</th>
-                        <th>&#10003;</th>
-                    </tr>
-                </thead>
-                {% for problem in problems %}
-                <tr>
-                    <td><a href="/viewproblem/{{problem[0]}}">{{problem[0]}}</a></td>
-                    {% if problem[1] %}
-                    <td style="color:green; font-weight:bold">Solved</td>
-                    {% else %}
-                    <td style="color:gray; font-weight:normal">Not solved yet</td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            {% else %}
-                <thead>
-                <tr>
-                    <th>Task name</th>
-                    <th>Due date</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for problem in problems %}
-                <tr>
-                    <td><a href="/viewproblem/{{problem[0]}}">C-Lang Part {{problem[0]}}</a></td>
-                    <td></td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            {% endif %}
+            <thead>
+            <tr>
+                <th>Task name</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for problem in problems %}
+            <tr>
+                <td><a href="/viewproblem/{{problem['name']}}">C-Lang Part {{problem['name']}}</a></td>
+                {% if problem['status'].startswith('Ready') %}
+                <td style="color:green">{{problem['status']}}</td>
+                {% else %}
+                <td style="color:gray">{{problem['status']}}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
         </table>
     </div>
 </article>
