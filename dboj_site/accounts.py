@@ -45,6 +45,8 @@ def logout():
 
 @app.route("/register", methods = ["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        return redirect("/home")
     form = RegisterForm()
     if form.validate_on_submit():
         user = settings.find_one({"type":"user", "username":form.username.data})
