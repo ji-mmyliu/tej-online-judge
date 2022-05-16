@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 {% block content %}
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='checkbox.css') }}">
+</head>
+
 <style>
     table {
         border-collapse: collapse;
@@ -38,7 +42,7 @@
             </thead>
             <tbody>
             {% for submission in submissions %}
-            <tr>
+            <tr author="{{submission['author']}}" class="row-content">
                 {% if current_user.is_admin or current_user.name == submission['author'] %}
                 <td><a href="/submission/{{submission['id']}}">{{submission['id']}}</a></td>
                 {% else %}
@@ -73,8 +77,30 @@
     {% else %}
     <a style="max-width:1rem">This problem is currently under maintenance. Please check back a bit later.</a>
     {% endif %}
-    
+
     <hr style="padding-bottom: 0.3em">
     <a href="/viewproblem/{{problemName}}/submissions/best">View user progress</a>
+
+    <hr style="padding-bottom: 0.3em">
+    <input type="checkbox" id="mySubmissions" onchange="toggleCheckbox()" state="show">
+    <label for="mySubmissions">Show my submissions only</label>
+
+    <script>
+        var toggleCheckbox = function() {
+            var checkbox = document.getElementById("mySubmissions");
+            var state = checkbox.getAttribute("state");
+            if (state == "show") state = "none";
+            else state = "show";
+            checkbox.setAttribute("state", state);
+            
+            var rows = document.getElementsByClassName("row-content");
+            for (var i = 0; i < rows.length; i++) {
+                var x = rows[i];
+                if (x.getAttribute("author") != document.getElementById("username").getAttribute("username")) {
+                    x.setAttribute("style", "display:" + state);
+                }
+            }
+        }
+    </script>
 </div>
 {% endblock %}
