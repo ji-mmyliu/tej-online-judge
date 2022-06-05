@@ -27,12 +27,16 @@ def error_occurred(e):
 def page_not_found(e):
     return render_template('404.html', title="404 Not Found", error = True), 404
 
+@app.errorhandler(405)
+def page_not_found(e):
+    return render_template('405.html', title="405 Method Not Allowed", error = True), 405
+
 @app.errorhandler(Exception)
 def handle_exception(e):
-    if "ERRORS_WEBHOOK" in os.environ:
-        requests.post(os.environ['ERRORS_WEBHOOK'], json = {"content":f"{os.environ.get('PING_MESSAGE')}\n**Error occured in the TEJ Online Judge website:**\n```{traceback.format_exc()}```"})
     if isinstance(e, HTTPException):
         return e
+    if "ERRORS_WEBHOOK" in os.environ:
+        requests.post(os.environ['ERRORS_WEBHOOK'], json = {"content":f"{os.environ.get('PING_MESSAGE')}\n**Error occured in the TEJ Online Judge website:**\n```{traceback.format_exc()}```"})
     return render_template("500.html", title="500 Something Went Wrong", e=e), 500
 
 @app.errorhandler(413)
